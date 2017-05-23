@@ -1,10 +1,12 @@
-from flask_wtf import FlaskForm
-from datetime import datetime
-
 from flask import Flask, render_template
-from flask_moment import Moment
+from flask import flash
+from flask import redirect
+from flask import session
+from flask import url_for
 from flask_bootstrap import Bootstrap
+from flask_moment import Moment
 from flask_script import Manager
+from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import Required
 
@@ -22,12 +24,14 @@ class NameForm(FlaskForm):
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
-    name = None
     form = NameForm()
     if form.validate_on_submit():
-        name = form.name.data
-        form.name.data = ''
-    return render_template('index.html', form=form, name=name)
+        old_name = session.get('name')
+        if old_name is not None and old_name != form.name.data:
+            flash('Looks like you have changed your name.')
+        session['name'] = form.name.data
+        return redirect(url_for('index'))
+    return render_template('index.html', form=form, name=session.get('name'))
 
 
 @app.route("/user/<name>")
