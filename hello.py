@@ -30,10 +30,14 @@ bootstrap = Bootstrap(app)
 moment = Moment(app)
 migrate = Migrate(app, db)
 
+
 def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role)
+
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
+
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -90,7 +94,6 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
-
 
 
 if __name__ == '__main__':
