@@ -7,10 +7,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'It is hard to guess'
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    MAIL_USE_TLS = True
+    MAIL_USE_TLS = False
     MAIL_USE_SSL = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'ShoneKey@163.com'
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or '4Shone'
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
     FLASKY_MAIL_SENDER = 'Flasky Admin <ShoneKey@163.com>'
     FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
