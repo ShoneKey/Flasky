@@ -4,6 +4,7 @@
 
 {% block page_content %}
     <div class="page-header">
+        <div class="profile-header">
         <h1>
             Hello,
             {% if current_user.is_authenticated %}
@@ -12,6 +13,7 @@
                 Stranger
             {% endif %}!
         </h1>
+        </div>
     </div>
     <form method="post">
         {{ wtf.quick_form(form) }}

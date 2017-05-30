@@ -15,7 +15,7 @@ def login():
         user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remenber_me.data)
-            return redirect(request.args.get('next') or url_for('main.index'))
+            return redirect(request.args.get('next') or url_for('main.user', username=user.username))
         flash('Invalid username or password.')
     return render_template('auth/login.html', form=form)
 
@@ -38,7 +38,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
-        send_mail(user.email, 'Confimed your Account', 'auth/email/confime', user=user, token=token)
+        send_mail(user.email, 'Confimed your Account', 'auth/email/confirm', user=user, token=token)
         flash('A confimed email has been  send to your by email.')
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
@@ -60,9 +60,9 @@ def confirm(token):
 def before_request():
     if current_user.is_authenticated:
         current_user.ping()
-        if not current_user.confirmed  \
-            and request.endpoint[:5] != 'auth.' \
-            and request.endpoint != 'static':
+        if not current_user.confirmed \
+                and request.endpoint[:5] != 'auth.' \
+                and request.endpoint != 'static':
             return redirect(url_for('auth.unconfirmed'))
 
 
