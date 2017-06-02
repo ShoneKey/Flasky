@@ -1,10 +1,9 @@
 from flask import g, jsonify
 from flask_httpauth import HTTPBasicAuth
-from flask_login import current_user
 
-from app.api_1_0 import api
-from app.api_1_0.errors import unauthorized, forbidden
-from app.models import AnonymousUser, User
+from . import api
+from .errors import unauthorized, forbidden
+from ..models import AnonymousUser, User
 
 auth = HTTPBasicAuth()
 
@@ -28,10 +27,11 @@ def verify_password(email_or_token, password):
 
 @api.route('/token')
 def get_token():
-    if current_user.is_anonymous() or g.token_used:
+    if g.current_user.is_anonymous or g.token_used:
         return unauthorized('Invalid credentials')
     return jsonify({'token': g.current_user.generate_auth_token(
         expiration=3600), 'expiration': 3600})
+
 
 @auth.error_handler
 def auth_error():

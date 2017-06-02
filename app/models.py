@@ -5,8 +5,8 @@ import bleach
 from flask import current_app, request
 from flask import url_for
 from markdown import markdown
-from wtforms import ValidationError
 
+from .exceptions import ValidationError
 from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
@@ -63,6 +63,7 @@ class Comment(db.Model):
     disabled = db.Column(db.Boolean)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         allowed_tags = ['a', 'abbr', 'acronym', 'b', 'code', 'em', 'i',
@@ -101,6 +102,7 @@ class Post(db.Model):
     @staticmethod
     def generate_fake(count=100):
         from random import seed, randint
+        from sqlalchemy.exc import IntegrityError
         import forgery_py
         seed()
         user_count = User.query.count()
@@ -109,8 +111,11 @@ class Post(db.Model):
             p = Post(body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
                      timestamp=forgery_py.date.date(True),
                      author=u)
-        db.session.add(p)
-        db.session.commit()
+            db.session.add(p)
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
 
     def to_json(self):
         json_post = {
