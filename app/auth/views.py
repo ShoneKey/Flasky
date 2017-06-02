@@ -38,8 +38,8 @@ def register():
         db.session.add(user)
         db.session.commit()
         token = user.generate_confirmation_token()
-        send_mail(user.email, 'Confimed your Account', 'auth/email/confirm', user=user, token=token)
-        flash('A confimed email has been  send to your by email.')
+        send_mail(user.email, 'To confirmed your definition', 'auth/email/confirm', user=user, token=token)
+        flash('A confirmed email has been  send to your by email.')
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
 
@@ -52,7 +52,7 @@ def confirm(token):
     if current_user.confirm(token):
         flash('You have confirmed your account,Thanks!')
     else:
-        flash('The confimation link is invalid or expired.')
+        flash('The confirmation link is invalid or expired.')
     return redirect(url_for('main.index'))
 
 
@@ -77,7 +77,7 @@ def unconfirmed():
 @login_required
 def resend_confirmation():
     token = current_user.generate_confirmation_token()
-    send_mail(current_user.email, 'Confirm Your Account.',
+    send_mail(current_user.email, 'To confirmed your definition.',
               'auth/email/confirm', user=current_user, token=token)
     flash('A new confirmation email has been  sent to you by email.')
     return redirect(url_for('main.index'))
@@ -108,7 +108,7 @@ def password_reset_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             token = user.generate_reset_token()
-            send_mail(user.email, 'Reset Your Password',
+            send_mail(user.email, 'To reset your code',
                       'auth/email/reset_password', user=user, token=token,
                       next=request.args.get('next'))
             flash('An email with instructions to reset your password has been sent to you.')
