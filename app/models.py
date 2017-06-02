@@ -3,7 +3,9 @@ from datetime import datetime
 
 import bleach
 from flask import current_app, request
+from flask import url_for
 from markdown import markdown
+from wtforms import ValidationError
 
 from . import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -81,6 +83,13 @@ class Post(db.Model):
     comments = db.relationship('Comment', backref='post', lazy='dynamic')
 
     @staticmethod
+    def from_json(json_post):
+        body = json_post.get('body')
+        if body is None or body == '':
+            raise ValidationError('post does not have a body')
+        return Post(body=body)
+
+    @staticmethod
     def on_change_body(target, value, oldvalue, initiator):
         allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
                         'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
@@ -102,6 +111,20 @@ class Post(db.Model):
                      author=u)
         db.session.add(p)
         db.session.commit()
+
+    def to_json(self):
+        json_post = {
+            'url': url_for('api.get_post', id=self.id, _external=True),
+            'body': self.body,
+            'body_html': self.body_html,
+            'timestamp': self.timestamp,
+            'author': url_for('api.get_user', id=self.author_id,
+                              _external=True),
+            'comments': url_for('api.get_post_comments', id=self.id,
+                                _external=True),
+            'comment_count': self.comments.count()
+        }
+        return json_post
 
 
 db.event.listen(Post.body, 'set', Post.on_change_body)
@@ -199,6 +222,33 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def generate_auth_token(self, expiration):
+        s = Serializer(current_app.config['SECRET_KEY'],
+                       expires_in=expiration)
+        return s.dumps({'id': self.id})
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
+
+    def to_json(self):
+        json_user = {
+            'url': url_for('api.get_post', id=self.id, _external=True),
+            'username': self.username,
+            'member_since': self.member_since,
+            'last_seen': self.last_seen,
+            'posts': url_for('api.get_user_posts', id=self.id, _external=True),
+            'followed_posts': url_for('api.get_user_followed_posts',
+                                      id=self.id, _external=True),
+            'post_count': self.posts.count()
+        }
+        return json_user
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
