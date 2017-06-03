@@ -9,6 +9,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
+    MAIL_SERVER = 'smtp.163.com'
+    MAIL_PORT = 465
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'ShoneKey@163.com'
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or '4Shone'
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
@@ -25,14 +27,13 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    MAIL_SERVER = 'smtp.163.com'
-    MAIL_PORT = 465
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
 
 
 class TestingConfig(Config):
     TESTING = True
+    WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir, 'data-test.sqlite')
 
