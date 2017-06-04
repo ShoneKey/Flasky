@@ -48,5 +48,17 @@ def test(coverage=False):
         COV.erase()
 
 
+@manager.command
+def deploy():
+    """Run deployment task"""
+    from flask_migrate import  upgrade
+    from app.models import Role, User
+
+    upgrade()
+
+    Role.insert_roles()
+
+    User.add_self_follows()
+
 if __name__ == '__main__':
     manager.run()
