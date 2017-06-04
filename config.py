@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -71,7 +72,7 @@ class HerokuConfig(ProductionConfig):
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)
-        # 输出到 stderr
+
         import logging
         from logging import StreamHandler
         file_handler = StreamHandler()
