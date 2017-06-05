@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -11,14 +12,15 @@ class Config:
     MAIL_USE_SSL = True
     MAIL_SERVER = 'smtp.163.com'
     MAIL_PORT = 465
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'ShoneKey@163.com'
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or '4Shone'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     FLASKY_MAIL_SUBJECT_PREFIX = '[Flasky]'
     FLASKY_MAIL_SENDER = 'Flasky Admin <ShoneKey@163.com>'
-    FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN') or 'ecoz@sina.cn'
+    FLASKY_ADMIN = os.environ.get('FLASKY_ADMIN')
     FLASKY_POSTS_PER_PAGE = 20
     FLASKY_FOLLOWERS_PER_PAGE = 10
     FLASKY_COMMENTS_PER_PAGE = 10
+    SSL_DISABLE = False
 
     @staticmethod
     def init_app(app):
@@ -43,7 +45,7 @@ class ProductionConfig(Config):
                               'sqlite:///' + os.path.join(basedir, 'data.sqlite')
 
     @classmethod
-    def init_app(cls,app):
+    def init_app(cls, app):
         Config.init_app(app)
         import logging
         from logging.handlers import SMTPHandler
@@ -52,7 +54,7 @@ class ProductionConfig(Config):
         if getattr(cls, 'MAIL_USERNAME', None) is not None:
             credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
             if getattr(cls, 'MAIL_USE_TLS', None):
-                secure=()
+                secure = ()
         mail_handler = SMTPHandler(
             mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
             fromaddr=cls.FLASKY_MAIL_SENDER,
@@ -64,10 +66,26 @@ class ProductionConfig(Config):
         app.logger.addHandler(mail_handler)
 
 
+class HerokuConfig(ProductionConfig):
+    SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
+
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.WARNING)
+        app.logger.addHandler(file_handler)
+        from werkzeug.contrib.fixers import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app)
 
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
+    'heroku': HerokuConfig,
+
     'default': DevelopmentConfig
 }

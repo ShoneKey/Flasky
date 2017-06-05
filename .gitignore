@@ -44,5 +44,5 @@ nosetests.xml
 
 # Virtual environment
 venv
-
+.env
 /geckodriver.log
