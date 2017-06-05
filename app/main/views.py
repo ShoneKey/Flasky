@@ -89,7 +89,7 @@ def edit_profile_admin(id):
     return render_template('edit_profile.html', form=form, user=user)
 
 
-@main.route('/post/<int:id>',methods=['GET', 'POST'])
+@main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
     post = Post.query.get_or_404(id)
     form = CommentForm()
@@ -102,12 +102,14 @@ def post(id):
         return redirect(url_for('.post', id=post.id, page=-1))
     page = request.args.get('page', 1, type=int)
     if page == -1:
-        page=(post.comments.count()-1) / current_app.config['FLASKY_COMMENTS_PER_PAGE'] + 1
-    pagination=post.comments.order_by(Comment.timestamp.asc()).paginate(page,
-                per_page=current_app.config['FLASKY_COMMENTS_PER_PAGE'],error_out=True)
-    comments=pagination.items
+        page = (post.comments.count() - 1) / current_app.config['FLASKY_COMMENTS_PER_PAGE'] + 1
+    pagination = post.comments.order_by(Comment.timestamp.asc()).paginate(page,
+                                                                          per_page=current_app.config[
+                                                                              'FLASKY_COMMENTS_PER_PAGE'],
+                                                                          error_out=True)
+    comments = pagination.items
 
-    return render_template('post.html', posts=[post], form=form,comments=comments,pagination=pagination)
+    return render_template('post.html', posts=[post], form=form, comments=comments, pagination=pagination)
 
 
 @main.route('/edit-post/<int:id>', methods=['GET', 'POST'])
@@ -122,7 +124,7 @@ def edit_post(id):
         post.body = form.body.data
         db.session.add(post)
         flash('The post has been updated.')
-        return redirect(url_for('.post'), id=post.id)
+        return redirect(url_for('.post', id=post.id))
     form.body.data = post.body
     return render_template('edit_post.html', form=form)
 
@@ -207,12 +209,12 @@ def show_followed():
 @login_required
 @permission_required(Permission.MODERATE_COMMENTS)
 def moderate():
-    page=request.args.get('page',1,type=int)
-    pagination=Comment.query.order_by(Comment.timestamp.desc()).paginate(
-        page,per_page=current_app.config['FLASKY_COMMENTS_PER_PAGE'],error_out=True
+    page = request.args.get('page', 1, type=int)
+    pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
+        page, per_page=current_app.config['FLASKY_COMMENTS_PER_PAGE'], error_out=True
     )
-    comments=pagination.items
-    return render_template('moderate.html',comments=comments,page=page,pagination=pagination)
+    comments = pagination.items
+    return render_template('moderate.html', comments=comments, page=page, pagination=pagination)
 
 
 @main.route('/moderate/enable/<int:id>')
@@ -223,7 +225,7 @@ def moderate_enable(id):
     comment.disabled = False
     db.session.add(comment)
     return redirect(url_for('.moderate',
-        page=request.args.get('page', 1, type=int)))
+                            page=request.args.get('page', 1, type=int)))
 
 
 @main.route('/moderate/disable/<int:id>')
@@ -234,4 +236,4 @@ def moderate_disable(id):
     comment.disabled = True
     db.session.add(comment)
     return redirect(url_for('.moderate',
-            page=request.args.get('page', 1, type=int)))
+                            page=request.args.get('page', 1, type=int)))
